@@ -47,6 +47,42 @@ calculate_pdb_knotcore("files/2efv.pdb")
 ```
 or use from the command line:
 ```python
+Analysis of the trajectory.
+
+positional arguments:
+  file                  Path to the structure file in accepted format: .pdb, .xyz or .xtc.
+  nterminus             The end of a structure that goes through a loop when a knot is formed. True if closer to N-terminus, False if closer to C-terminus.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -o TOP_FILE, --top_file TOP_FILE
+                        Path to a PDB file, a trajectory, or a topology to supply information for non-PDB formats of the main file.
+  -n NAT_KNOTCORE [NAT_KNOTCORE ...], --nat_knotcore NAT_KNOTCORE [NAT_KNOTCORE ...]
+                        The knot core range in the native form of the structure. Usually the knot core range is given as a tuple, but for the program to work correctly, the first
+                        value must be given, followed by a space and the second value. Example: for knot core range (9, 87), program must get: -n 9 87
+  -g MIN_GAP, --min_gap MIN_GAP
+                        The minimum number of frames before a knot is considered to have formed, in which 80 percent of those frames do not contain a knot.
+  -s SCOPE, --scope SCOPE
+                        The minimum consecutive number of frames in which a knot occurs in order to consider that a knot has actually formed.
+  -k MIN_KNOT, --min_knot MIN_KNOT
+                        The minimum number of frames over which a node is present to consider it a stable node in the analysis.
+  -c CLOSURE, --closure CLOSURE
+                        The method to close the chain. Viable options are parameters of the Closure class (in topoly.params).
+  -t TRIES, --tries TRIES
+                        Number of tries for stochastic closure methods.
+  -m MAX_CROSS, --max_cross MAX_CROSS
+                        Maximal number of crossings after reduction to start polynomial calculation.
+  -d, --draw_plot       Generate a plot.
+  -p PLOT_FILENAME, --plot_filename PLOT_FILENAME
+                        Name of the plot file.
+  -l PLOT_SCOPE, --plot_scope PLOT_SCOPE
+                        The step value determines how frequently the knot core value will be calculated and plotted on the graph.
+  -e, --debug           Enable debug mode.
+  -f, --full_output     Display full analysis results.
+
+```
+
+```python
 calculate_knotcore.py -h
 Calculate knot core range for a given structure.
 
