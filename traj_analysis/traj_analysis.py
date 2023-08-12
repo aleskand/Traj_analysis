@@ -130,8 +130,8 @@ if __name__ == "__main__":
                              ' followed by a space and the second value. '
                              'Example: for knot core range (9, 87), program must get: -n 9 87')
     parser.add_argument('-g', '--min_gap', type=int, default=10, help='The minimum number of frames before a knot is'
-                                                                      ' considered to have formed, in which 80% of'
-                                                                      ' those frames do not contain a knot.')
+                                                                      ' considered to have formed, in which 80 percent'
+                                                                      ' of those frames do not contain a knot.')
     parser.add_argument('-s', '--scope', type=int, default=10, help='The minimum consecutive number of frames in which'
                                                                     ' a knot occurs in order to consider that a knot'
                                                                     ' has actually formed.')
