@@ -1,0 +1,10 @@
+argparse~=1.4.0
+math
+os
+topoly~=0.9.25
+Bio
+
+plotly==5.15.0
+plotly-resampler
+
+mdtraj~=1.9.7

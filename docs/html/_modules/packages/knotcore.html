@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>packages.knotcore &mdash; Visualization of the process of knot formation in the trajectory of (bio)polymers folding 1.0. documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Visualization of the process of knot formation in the trajectory of (bio)polymers folding
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">traj_analysis_final</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Visualization of the process of knot formation in the trajectory of (bio)polymers folding</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">packages.knotcore</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for packages.knotcore</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">topoly</span> <span class="kn">import</span> <span class="n">alexander</span>
+<span class="kn">import</span> <span class="nn">mdtraj</span> <span class="k">as</span> <span class="nn">md</span>
+<span class="kn">from</span> <span class="nn">Bio.PDB</span> <span class="kn">import</span> <span class="n">PDBParser</span><span class="p">,</span> <span class="n">PDBExceptions</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+
+<div class="viewcode-block" id="check_file_extension"><a class="viewcode-back" href="../../packages.html#packages.knotcore.check_file_extension">[docs]</a><span class="k">def</span> <span class="nf">check_file_extension</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function check the file extension.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        filename (str):</span>
+<span class="sd">            Name of the file to examine.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The file extension.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">file_extension</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">file_extension</span></div>
+
+
+<div class="viewcode-block" id="process_structure_and_calculate"><a class="viewcode-back" href="../../packages.html#packages.knotcore.process_structure_and_calculate">[docs]</a><span class="k">def</span> <span class="nf">process_structure_and_calculate</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">chain_id</span><span class="p">,</span> <span class="n">atom_list</span><span class="p">,</span> <span class="n">closure</span><span class="p">,</span> <span class="n">tries</span><span class="p">,</span> <span class="n">max_cross</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">check_file_extension</span><span class="p">(</span><span class="n">file</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;.pdb&quot;</span><span class="p">:</span>
+        <span class="n">parser</span> <span class="o">=</span> <span class="n">PDBParser</span><span class="p">(</span><span class="n">QUIET</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">structure</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">get_structure</span><span class="p">(</span><span class="s2">&quot;pdb&quot;</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">PDBExceptions</span><span class="o">.</span><span class="n">PDBConstructionWarning</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">PDBExceptions</span><span class="o">.</span><span class="n">PDBConstructionWarning</span>
+
+        <span class="c1"># looking for the name of first atom</span>
+        <span class="k">if</span> <span class="n">atom_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">structure</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">chain</span> <span class="o">=</span> <span class="n">model</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">]</span>
+            <span class="n">residue</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">get_residues</span><span class="p">())</span>
+            <span class="n">atom_id</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">residue</span><span class="o">.</span><span class="n">get_atoms</span><span class="p">())</span>
+
+        <span class="n">chain_atoms</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">structure</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">chain</span> <span class="ow">in</span> <span class="n">model</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">chain_id</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">chain</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">chain_id</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">residue</span> <span class="ow">in</span> <span class="n">chain</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">residue</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">atom_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="n">atom</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">atom_id</span><span class="o">.</span><span class="n">element</span><span class="p">:</span>
+                                    <span class="n">chain_atoms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">atom</span><span class="p">)</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="n">atom</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">atom_list</span><span class="p">:</span>
+                                    <span class="n">chain_atoms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">atom</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;output.nxyz&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">chain_atoms</span><span class="p">:</span>
+                <span class="n">coords</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">get_coord</span><span class="p">()</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">coords</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">))</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">output_file</span> <span class="o">=</span> <span class="s2">&quot;output.nxyz&quot;</span>
+        <span class="n">pdb</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">output_file</span> <span class="o">=</span> <span class="n">file</span>
+        <span class="n">pdb</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">knotcore_result</span> <span class="o">=</span> <span class="n">count_knotcore</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="n">closure</span><span class="o">=</span><span class="n">closure</span><span class="p">,</span> <span class="n">tries</span><span class="o">=</span><span class="n">tries</span><span class="p">,</span> <span class="n">max_cross</span><span class="o">=</span><span class="n">max_cross</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pdb</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;output.nxyz&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">knotcore_result</span></div>
+
+
+<div class="viewcode-block" id="load_structure"><a class="viewcode-back" href="../../packages.html#packages.knotcore.load_structure">[docs]</a><span class="k">def</span> <span class="nf">load_structure</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">top_file</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function reads the structure in one of the accepted formats.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        file (str):</span>
+<span class="sd">                The path to the structure in accepted format: .pdb, .xyz or .xtc.</span>
+<span class="sd">        top_file (str):</span>
+<span class="sd">                If the file is not given in PDB format, it is required to specify an extra file in order to conduct</span>
+<span class="sd">                the analysis. This is because the XYZ and XTC format does not contain topology information.</span>
+<span class="sd">                Pass in either the path to a PDB file, a trajectory, or a topology to supply this information.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The resulting trajectory, as a md.Trajectory object (trajectorymd.Trajectory).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">extension</span> <span class="o">=</span> <span class="n">check_file_extension</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">extension</span> <span class="o">==</span> <span class="s2">&quot;.pdb&quot;</span><span class="p">:</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">load_pdb</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">extension</span> <span class="o">==</span> <span class="s2">&quot;.xyz&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">top_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;This format of file requires an additional file &#39;top_file&#39;.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">load_xyz</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="n">top_file</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">extension</span> <span class="o">==</span> <span class="s2">&quot;.xtc&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">top_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;This format of file requires an additional file &#39;top_file&#39;.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="n">top_file</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">t</span></div>
+
+
+<div class="viewcode-block" id="get_lider_from_dict"><a class="viewcode-back" href="../../packages.html#packages.knotcore.get_lider_from_dict">[docs]</a><span class="k">def</span> <span class="nf">get_lider_from_dict</span><span class="p">(</span><span class="n">knot_dict</span><span class="p">):</span>
+    <span class="n">kn</span><span class="p">,</span> <span class="n">pr</span> <span class="o">=</span> <span class="s1">&#39;0_1&#39;</span><span class="p">,</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span> <span class="ow">in</span> <span class="n">knot_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">p</span> <span class="o">&gt;</span> <span class="n">pr</span><span class="p">:</span>
+            <span class="n">kn</span><span class="p">,</span> <span class="n">pr</span> <span class="o">=</span> <span class="n">k</span><span class="p">,</span> <span class="n">p</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">kn</span><span class="p">,</span> <span class="n">pr</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="find_knotcore_simple"><a class="viewcode-back" href="../../packages.html#packages.knotcore.find_knotcore_simple">[docs]</a><span class="k">def</span> <span class="nf">find_knotcore_simple</span><span class="p">(</span><span class="n">chain</span><span class="p">,</span> <span class="n">gap</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">closure</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">tries</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="mf">0.42</span><span class="p">,</span> <span class="n">max_cross</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function is a slightly modified version of the code from original function authored by Dr Wanda Niemyska.</span>
+<span class="sd">    The function is used with the author&#39;s permission. In the future, there are plans to include the knot core value</span>
+<span class="sd">    calculation function in the Topoly package, and then it will be more appropriate to use it.</span>
+
+<span class="sd">    Function finds the knotcore with a simple approach:</span>
+<span class="sd">        1. checks the knot type of the whole structure (main_knot), returns None if it is unknotted;</span>
+<span class="sd">        2. cuts atoms from one end of the chain as long as the shortened chain is still knotted</span>
+<span class="sd">           (more precisely - forms main_knot type);</span>
+<span class="sd">           allows the situation that a certain chain is unknotted, but after cutting off another atom,</span>
+<span class="sd">           the knot returns again (gap parameter); we get cut_beg, cut_end (how much we can cut);</span>
+<span class="sd">        3. checks if after cutting cut_beg and cut_end atoms from the beginning and end of the structure,</span>
+<span class="sd">           respectively, there is a main_knot formed - if yes, returns this as a knotcore, if not decreases cut_beg</span>
+<span class="sd">           and cut_end by one, and tries again;</span>
+
+<span class="sd">    It is possible to specify indexes of first and last atoms for .xyz and .nxyz files.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        chain (str):</span>
+<span class="sd">                Structure for which the knot core value is to be calculated, in the .xyz or .nxyz format.</span>
+<span class="sd">        gap (int, optional):</span>
+<span class="sd">                The maximum number of frames in which there is no knot, or for some reason, the knot core value cannot</span>
+<span class="sd">                be calculated, for which the computations will not be interrupted (i.e., the interruption will not be</span>
+<span class="sd">                considered as the end of the structure, but rather as a discontinuity).</span>
+<span class="sd">                Default: 1.</span>
+<span class="sd">        cutoff (float, optional):</span>
+<span class="sd">                The parameter used during the application of random closures. It determines the threshold above which</span>
+<span class="sd">                we consider that a knot has formed.</span>
+<span class="sd">                Default: 0.42.</span>
+
+<span class="sd">    Returns: None or</span>
+<span class="sd">            (begin_of_knotcore, end_of_knotcore), where these are ids from the file (not necessarily</span>
+<span class="sd">             starting from 0/1)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">id_beg</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">id_end</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">find_subknot</span><span class="p">(</span><span class="n">beg</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+        <span class="n">kn</span> <span class="o">=</span> <span class="n">alexander</span><span class="p">(</span><span class="n">chain</span><span class="p">,</span> <span class="n">chain_boundary</span><span class="o">=</span><span class="p">[[</span><span class="n">beg</span><span class="p">,</span> <span class="n">end</span><span class="p">]],</span> <span class="n">closure</span><span class="o">=</span><span class="n">closure</span><span class="p">,</span> <span class="n">tries</span><span class="o">=</span><span class="n">tries</span><span class="p">,</span> <span class="n">max_cross</span><span class="o">=</span><span class="n">max_cross</span><span class="p">,</span>
+                       <span class="n">run_parallel</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">kn</span> <span class="o">=</span> <span class="n">kn</span><span class="p">[(</span><span class="n">beg</span><span class="p">,</span> <span class="n">end</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="n">closure</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">kn</span><span class="p">,</span> <span class="n">prob</span> <span class="o">=</span> <span class="n">get_lider_from_dict</span><span class="p">(</span><span class="n">kn</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">prob</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">kn</span><span class="p">,</span> <span class="n">prob</span>
+
+    <span class="k">if</span> <span class="n">chain</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.nxyz&#39;</span><span class="p">):</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">chain</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_nxyz</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">file_nxyz</span><span class="p">:</span>
+                <span class="n">line_res</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line_res</span><span class="p">)</span>
+        <span class="n">id_beg</span><span class="p">,</span> <span class="n">id_end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">chain</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.xyz&#39;</span><span class="p">):</span>
+        <span class="n">id_beg</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">chain</span><span class="p">)</span> <span class="k">as</span> <span class="n">file_xyz</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">file_xyz</span><span class="p">:</span>
+                <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">id_end</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+
+    <span class="n">main_knot</span><span class="p">,</span> <span class="n">prob</span> <span class="o">=</span> <span class="n">find_subknot</span><span class="p">(</span><span class="n">id_beg</span><span class="p">,</span> <span class="n">id_end</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">main_knot</span> <span class="o">==</span> <span class="s1">&#39;0_1&#39;</span> <span class="ow">or</span> <span class="n">prob</span> <span class="o">&lt;</span> <span class="n">cutoff</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">cut_beg</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">act_kn</span><span class="p">,</span> <span class="n">prob</span><span class="p">,</span> <span class="n">act_gap</span> <span class="o">=</span> <span class="n">main_knot</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">id_beg</span> <span class="o">+</span> <span class="n">cut_beg</span> <span class="o">&lt;</span> <span class="n">id_end</span> <span class="o">-</span> <span class="mi">5</span> <span class="ow">and</span> <span class="p">((</span><span class="n">act_kn</span> <span class="o">==</span> <span class="n">main_knot</span> <span class="ow">and</span> <span class="n">prob</span> <span class="o">&gt;=</span> <span class="n">cutoff</span><span class="p">)</span> <span class="ow">or</span> <span class="n">act_gap</span> <span class="o">&lt;=</span> <span class="n">gap</span><span class="p">):</span>
+        <span class="n">cut_beg</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">act_kn</span><span class="p">,</span> <span class="n">prob</span> <span class="o">=</span> <span class="n">find_subknot</span><span class="p">(</span><span class="n">id_beg</span> <span class="o">+</span> <span class="n">cut_beg</span><span class="p">,</span> <span class="n">id_end</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">act_kn</span> <span class="o">==</span> <span class="n">main_knot</span> <span class="ow">and</span> <span class="n">prob</span> <span class="o">&gt;=</span> <span class="n">cutoff</span><span class="p">:</span>
+            <span class="n">act_gap</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">act_gap</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">cut_end</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">act_kn</span><span class="p">,</span> <span class="n">prob</span><span class="p">,</span> <span class="n">act_gap</span> <span class="o">=</span> <span class="n">main_knot</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">id_beg</span> <span class="o">+</span> <span class="mi">5</span> <span class="o">&lt;</span> <span class="n">id_end</span> <span class="o">-</span> <span class="n">cut_end</span> <span class="ow">and</span> <span class="p">((</span><span class="n">act_kn</span> <span class="o">==</span> <span class="n">main_knot</span> <span class="ow">and</span> <span class="n">prob</span> <span class="o">&gt;=</span> <span class="n">cutoff</span><span class="p">)</span> <span class="ow">or</span> <span class="n">act_gap</span> <span class="o">&lt;=</span> <span class="n">gap</span><span class="p">):</span>
+        <span class="n">cut_end</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">act_kn</span><span class="p">,</span> <span class="n">prob</span> <span class="o">=</span> <span class="n">find_subknot</span><span class="p">(</span><span class="n">id_beg</span><span class="p">,</span> <span class="n">id_end</span> <span class="o">-</span> <span class="n">cut_end</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">act_kn</span> <span class="o">==</span> <span class="n">main_knot</span> <span class="ow">and</span> <span class="n">prob</span> <span class="o">&gt;=</span> <span class="n">cutoff</span><span class="p">:</span>
+            <span class="n">act_gap</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">act_gap</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">act_kn</span> <span class="o">=</span> <span class="s1">&#39;0_1&#39;</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">act_kn</span> <span class="o">!=</span> <span class="n">main_knot</span> <span class="ow">or</span> <span class="n">prob</span> <span class="o">&lt;</span> <span class="mf">0.8</span> <span class="o">*</span> <span class="n">cutoff</span><span class="p">)</span> <span class="ow">and</span> <span class="n">cut_beg</span> <span class="o">+</span> <span class="n">cut_end</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">cut_beg</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">cut_beg</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">cut_end</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">cut_end</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="n">act_kn</span><span class="p">,</span> <span class="n">prob</span> <span class="o">=</span> <span class="n">find_subknot</span><span class="p">(</span><span class="n">id_beg</span> <span class="o">+</span> <span class="n">cut_beg</span><span class="p">,</span> <span class="n">id_end</span> <span class="o">-</span> <span class="n">cut_end</span><span class="p">)</span>
+
+    <span class="n">res_list</span> <span class="o">=</span> <span class="p">(</span><span class="n">id_beg</span> <span class="o">+</span> <span class="n">cut_beg</span><span class="p">,</span> <span class="n">id_end</span> <span class="o">-</span> <span class="n">cut_end</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">res_list</span></div>
+
+
+<div class="viewcode-block" id="count_knotcore"><a class="viewcode-back" href="../../packages.html#packages.knotcore.count_knotcore">[docs]</a><span class="k">def</span> <span class="nf">count_knotcore</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">closure</span><span class="p">,</span> <span class="n">tries</span><span class="p">,</span> <span class="n">max_cross</span><span class="p">):</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">find_knotcore_simple</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">closure</span><span class="o">=</span><span class="n">closure</span><span class="p">,</span> <span class="n">tries</span><span class="o">=</span><span class="n">tries</span><span class="p">,</span> <span class="n">max_cross</span><span class="o">=</span><span class="n">max_cross</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">res</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Aleksandra Sekula.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
