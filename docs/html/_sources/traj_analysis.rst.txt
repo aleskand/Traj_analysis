@@ -1,7 +1,0 @@
-traj\_analysis module
-=====================
-
-.. automodule:: traj_analysis
-   :members:
-   :undoc-members:
-   :show-inheritance:
