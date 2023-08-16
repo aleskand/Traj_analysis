@@ -1,0 +1,7 @@
+calculate\_knotcore module
+==========================
+
+.. automodule:: calculate_knotcore
+   :members:
+   :undoc-members:
+   :show-inheritance:

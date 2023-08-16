@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>packages.traj &mdash; Visualization of the process of knot formation in the trajectory of (bio)polymers folding 1.0. documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Visualization of the process of knot formation in the trajectory of (bio)polymers folding
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">traj_analysis_final</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Visualization of the process of knot formation in the trajectory of (bio)polymers folding</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">packages.traj</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for packages.traj</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">packages.knotcore</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+
+<div class="viewcode-block" id="search_for_the_type_change"><a class="viewcode-back" href="../../packages.html#packages.traj.search_for_the_type_change">[docs]</a><span class="k">def</span> <span class="nf">search_for_the_type_change</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">iteration</span><span class="p">,</span> <span class="n">lx</span><span class="p">,</span> <span class="n">closure</span><span class="p">,</span> <span class="n">max_cross</span><span class="p">,</span> <span class="n">tries</span><span class="p">,</span> <span class="n">loop</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function iterates every specified step, searching for the moments when the type of knot in the trajectory changes.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        start (int):</span>
+<span class="sd">                Number of frame where the search starts.</span>
+<span class="sd">        end (int):</span>
+<span class="sd">                Number of frame where the search ends.</span>
+<span class="sd">        iteration (int: 1, 10 or 100):</span>
+<span class="sd">                Step every which we perform a trajectory search.</span>
+<span class="sd">        loop (bool):</span>
+<span class="sd">                True if looking for looping moment.</span>
+
+<span class="sd">    Returns: list of frames, in which a knot type change was detected</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">frame_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">loop</span><span class="p">:</span>
+        <span class="n">knot</span> <span class="o">=</span> <span class="s2">&quot;0_1&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">knot</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">iteration</span><span class="p">):</span>
+        <span class="n">kn</span> <span class="o">=</span> <span class="n">knot_type</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">lx</span><span class="p">,</span> <span class="n">closure</span><span class="p">,</span> <span class="n">max_cross</span><span class="p">,</span> <span class="n">tries</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">loop</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">kn</span><span class="p">)</span> <span class="o">!=</span> <span class="n">knot</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">kn</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;0_1&#39;</span><span class="p">:</span>
+            <span class="n">frame_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">iteration</span> <span class="o">==</span> <span class="mi">10</span> <span class="ow">or</span> <span class="n">iteration</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">loop</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">kn</span><span class="p">)</span> <span class="o">!=</span> <span class="n">knot</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">kn</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;0_1&#39;</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">frame_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">iteration</span> <span class="o">==</span> <span class="mi">10</span> <span class="ow">or</span> <span class="n">iteration</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">break</span>
+        <span class="k">elif</span> <span class="n">iteration</span> <span class="o">==</span> <span class="mi">10</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">==</span> <span class="n">end</span> <span class="o">-</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="n">frame_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">end</span><span class="p">)</span>
+        <span class="n">knot</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">kn</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">frame_list</span></div>
+
+
+<div class="viewcode-block" id="knot_type"><a class="viewcode-back" href="../../packages.html#packages.traj.knot_type">[docs]</a><span class="k">def</span> <span class="nf">knot_type</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">lx</span><span class="p">,</span> <span class="n">closure</span><span class="p">,</span> <span class="n">max_cross</span><span class="p">,</span> <span class="n">tries</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function calculates the Alexander polynomial of the given structure.</span>
+
+<span class="sd">    Returns: topology type.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">closure</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">alexander</span><span class="p">([[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">lx</span><span class="p">[</span><span class="n">i</span><span class="p">][::</span><span class="mi">2</span><span class="p">]],</span> <span class="n">closure</span><span class="o">=</span><span class="n">closure</span><span class="p">,</span> <span class="n">run_parallel</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                         <span class="n">max_cross</span><span class="o">=</span><span class="n">max_cross</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">alexander</span><span class="p">([[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">lx</span><span class="p">[</span><span class="n">i</span><span class="p">][::</span><span class="mi">2</span><span class="p">]],</span> <span class="n">closure</span><span class="o">=</span><span class="n">closure</span><span class="p">,</span> <span class="n">tries</span><span class="o">=</span><span class="n">tries</span><span class="p">,</span> <span class="n">run_parallel</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="n">max_cross</span><span class="o">=</span><span class="n">max_cross</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">res</span><span class="o">.</span><span class="n">get</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="knotcore_len"><a class="viewcode-back" href="../../packages.html#packages.traj.knotcore_len">[docs]</a><span class="k">def</span> <span class="nf">knotcore_len</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">lx</span><span class="p">,</span> <span class="n">closure</span><span class="p">,</span> <span class="n">tries</span><span class="p">,</span> <span class="n">max_cross</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function creates a nxyz file and calculates knot core value in the given frame.</span>
+
+<span class="sd">    Returns: knot core value</span>
+<span class="sd">             None, if the knot core function returns invalid value.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="c1"># creating nxyz file</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;frames_temp.nxyz&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">output</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lx</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+            <span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">j</span><span class="p">))</span>
+            <span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+                <span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+            <span class="n">output</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">output</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="c1"># calculate knot core</span>
+    <span class="n">knotcore_res</span> <span class="o">=</span> <span class="n">count_knotcore</span><span class="p">(</span><span class="s1">&#39;frames_temp.nxyz&#39;</span><span class="p">,</span> <span class="n">closure</span><span class="o">=</span><span class="n">closure</span><span class="p">,</span> <span class="n">tries</span><span class="o">=</span><span class="n">tries</span><span class="p">,</span> <span class="n">max_cross</span><span class="o">=</span><span class="n">max_cross</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">knotcore_res</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">knotcore_res</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">knotcore_res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">knotcore_res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">knotcore_res</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;frames_temp.nxyz&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">knotcore_res</span></div>
+
+
+<div class="viewcode-block" id="check_after_knotting"><a class="viewcode-back" href="../../packages.html#packages.traj.check_after_knotting">[docs]</a><span class="k">def</span> <span class="nf">check_after_knotting</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">lx</span><span class="p">,</span> <span class="n">closure</span><span class="p">,</span> <span class="n">max_cross</span><span class="p">,</span> <span class="n">tries</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function checks if knot is tied on the correct number of frames.</span>
+
+<span class="sd">    Returns: 1 if knotted correctly,</span>
+<span class="sd">            frame, in which is unknot otherwise.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+        <span class="n">kn</span> <span class="o">=</span> <span class="n">knot_type</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">lx</span><span class="p">,</span> <span class="n">closure</span><span class="p">,</span> <span class="n">max_cross</span><span class="p">,</span> <span class="n">tries</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">kn</span> <span class="o">==</span> <span class="s1">&#39;0_1&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">i</span>
+    <span class="k">return</span> <span class="mi">1</span></div>
+
+
+<div class="viewcode-block" id="check_knotting"><a class="viewcode-back" href="../../packages.html#packages.traj.check_knotting">[docs]</a><span class="k">def</span> <span class="nf">check_knotting</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">pc</span><span class="p">,</span> <span class="n">lx</span><span class="p">,</span> <span class="n">min_gap</span><span class="p">,</span> <span class="n">closure</span><span class="p">,</span> <span class="n">max_cross</span><span class="p">,</span> <span class="n">tries</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function checks if knot is not tied on the given percentage (pc) of min_gap frames. It can be used to check, if</span>
+<span class="sd">    there were enough frames without a knot before the moment of knotting. Or to check, if the knot was really</span>
+<span class="sd">    unknotted, or the unknot frames appeared by chance after the consider moment of unknotting.</span>
+
+<span class="sd">    Returns: True if not knotted, False otherwise.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">case</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">pc</span><span class="p">)</span> <span class="o">*</span> <span class="n">min_gap</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">):</span>
+        <span class="n">kn</span> <span class="o">=</span> <span class="n">knot_type</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">lx</span><span class="p">,</span> <span class="n">closure</span><span class="p">,</span> <span class="n">max_cross</span><span class="p">,</span> <span class="n">tries</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">kn</span> <span class="o">!=</span> <span class="s1">&#39;0_1&#39;</span> <span class="ow">and</span> <span class="n">case</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">kn</span> <span class="o">!=</span> <span class="s1">&#39;0_1&#39;</span><span class="p">:</span>
+            <span class="k">case</span> <span class="o">-=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="Traj"><a class="viewcode-back" href="../../packages.html#packages.traj.Traj">[docs]</a><span class="k">class</span> <span class="nc">Traj</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lx</span><span class="p">,</span> <span class="n">prot_len</span><span class="p">,</span> <span class="n">max_frame</span><span class="p">,</span> <span class="n">min_gap</span><span class="p">,</span> <span class="n">scope</span><span class="p">,</span> <span class="n">min_knot</span><span class="p">,</span> <span class="n">nterminus</span><span class="p">,</span> <span class="n">nat_knotcore</span><span class="p">,</span> <span class="n">closure</span><span class="p">,</span> <span class="n">tries</span><span class="p">,</span>
+                 <span class="n">max_cross</span><span class="p">,</span> <span class="n">debug</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lx</span> <span class="o">=</span> <span class="n">lx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prot_len</span> <span class="o">=</span> <span class="n">prot_len</span>
+        <span class="c1"># maximum tail length for slipknot classification, 2 thresholds for small (below 100 nucleotides) and</span>
+        <span class="c1"># large (greater than 100 nucleotides) structures</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prot_len</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SLIPKNOT_SIZE</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">SLIPKNOT_SIZE</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_frame</span> <span class="o">=</span> <span class="n">max_frame</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_gap</span> <span class="o">=</span> <span class="n">min_gap</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scope</span> <span class="o">=</span> <span class="n">scope</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_knot</span> <span class="o">=</span> <span class="n">min_knot</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nterminus</span> <span class="o">=</span> <span class="n">nterminus</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nat_knotcore</span> <span class="o">=</span> <span class="n">nat_knotcore</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">closure</span> <span class="o">=</span> <span class="n">closure</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tries</span> <span class="o">=</span> <span class="n">tries</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_cross</span> <span class="o">=</span> <span class="n">max_cross</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="o">=</span> <span class="n">debug</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frame_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">untied_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="Traj.calculate"><a class="viewcode-back" href="../../packages.html#packages.traj.Traj.calculate">[docs]</a>    <span class="k">def</span> <span class="nf">calculate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">full_output</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The function performs the entire analysis process by calling subsequent functions one by one.</span>
+<span class="sd">        Analysis steps:</span>
+<span class="sd">            1. Creating frame_list, which holds frames where is possible that the knot was tied.</span>
+<span class="sd">            2. Creating knot_dict - dictionary, where the results of analysis will be stored. During this process,</span>
+<span class="sd">               checks are made to find the exact moment of knotting.</span>
+<span class="sd">            3.</span>
+<span class="sd">            4. Calculating the knot core range for the frames, in which the knot was tied.</span>
+<span class="sd">            5. Evaluating the way of looping and the behavior of the loop, after knotting.</span>
+<span class="sd">        All the above information are inserted to the knot_dict and returned.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dictionary with the results of the analysis.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frame_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">searched_structure</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">untied_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">searched_structure</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_untied_list</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Result of first iteration of searching for the possible moments of knotting: &quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frame_list</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">construct_knotdict</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">check_knot</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">calculate_knotcore</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">specify_knotting_style</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">full_output</span><span class="p">:</span>
+                <span class="n">full_knot_dict</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="p">:</span>
+                    <span class="n">full_knot_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="n">full_knot_dict</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s2">&quot;Knot type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">full_knot_dict</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s2">&quot;Unknotting frame&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">full_knot_dict</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s2">&quot;Knot core range&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">full_knot_dict</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s2">&quot;Knotting via slipknot&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">full_knot_dict</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s2">&quot;Knotting via slipknot&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nat_knotcore</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">4</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="n">full_knot_dict</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s2">&quot;Loop behavior&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;loop tightens&quot;</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">4</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                            <span class="n">full_knot_dict</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s2">&quot;Loop behavior&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;loop is in place&quot;</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">4</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                            <span class="n">full_knot_dict</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s2">&quot;Loop behavior&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;loop expands&quot;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">full_knot_dict</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s2">&quot;Loop behavior&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;No rating. The knot core range the native form of the&quot;</span> \
+                                                               <span class="s2">&quot; structure was not given.&quot;</span>
+                <span class="k">return</span> <span class="n">full_knot_dict</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Traj.searched_structure"><a class="viewcode-back" href="../../packages.html#packages.traj.Traj.searched_structure">[docs]</a>    <span class="k">def</span> <span class="nf">searched_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">knotting</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function searches the trajectory to find the moment of change from unknot to knot or from knot to unknot.</span>
+<span class="sd">        First, it searches every 100 frames, then every 10 over the 100 frames before the frame, which was found in</span>
+<span class="sd">        the previous iteration, then every 1 frame.</span>
+<span class="sd">        Thanks to this, the function finds possible moments of knotting or unknotting, which will be carefully analyzed</span>
+<span class="sd">        further on. The function by default ignores the possible momentary creation of the knot (for less than 100</span>
+<span class="sd">        frames), because its purpose is to find those moments when a stable knot is created.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            knotting (bool):</span>
+<span class="sd">                    True, if looking dor the moments of knotting.</span>
+<span class="sd">                    False, if looking for thr moments of unknotting.</span>
+
+<span class="sd">        Returns: list of frames, where the knot is likely to have tied or untied.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># searching every 100 frames</span>
+        <span class="n">frame_list_100</span> <span class="o">=</span> <span class="n">search_for_the_type_change</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lx</span><span class="p">),</span> <span class="mi">100</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">closure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_cross</span><span class="p">,</span>
+                                                    <span class="bp">self</span><span class="o">.</span><span class="n">tries</span><span class="p">,</span> <span class="n">knotting</span><span class="p">)</span>
+
+        <span class="c1"># searching every 10 frames</span>
+        <span class="n">frame_list_10</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">frame_list_100</span><span class="p">)):</span>
+            <span class="n">frame</span> <span class="o">=</span> <span class="n">search_for_the_type_change</span><span class="p">(</span><span class="n">frame_list_100</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">-</span> <span class="mi">90</span><span class="p">,</span> <span class="n">frame_list_100</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span>
+                                               <span class="bp">self</span><span class="o">.</span><span class="n">closure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_cross</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tries</span><span class="p">,</span> <span class="n">knotting</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">frame_list_10</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frame_list_100</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">frame_list_10</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frame</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c1"># searching every 1 frame</span>
+        <span class="n">frame_list_1</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">frame_list_10</span><span class="p">)):</span>
+            <span class="n">frame</span> <span class="o">=</span> <span class="n">search_for_the_type_change</span><span class="p">(</span><span class="n">frame_list_10</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">-</span> <span class="mi">9</span><span class="p">,</span> <span class="n">frame_list_10</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span>
+                                               <span class="bp">self</span><span class="o">.</span><span class="n">closure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_cross</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tries</span><span class="p">,</span> <span class="n">knotting</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">frame_list_1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frame_list_10</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">frame_list_1</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frame</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">frame_list_1</span></div>
+
+<div class="viewcode-block" id="Traj.check_untied_list"><a class="viewcode-back" href="../../packages.html#packages.traj.Traj.check_untied_list">[docs]</a>    <span class="k">def</span> <span class="nf">check_untied_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function checks the untied list. If the length of the &#39;untied&#39; list is not equal to the length of the</span>
+<span class="sd">        &#39;frame_list&#39;, it means that either the knot was tied from the beginning, in which case a 0 is appended to the</span>
+<span class="sd">        &#39;frame_list&#39;, or the knot remained unresolved until the end of the trajectory. In such a situation, the value</span>
+<span class="sd">        None is inserted into the &#39;untied&#39; list. This information will be used by subsequent functions to indicate that</span>
+<span class="sd">        the last tied knot, after being tied, remained present until the end of the trajectory.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">untied_list</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frame_list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frame_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">untied_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">untied_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">untied_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">frame_list</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">untied_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">untied_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Traj.construct_knotdict"><a class="viewcode-back" href="../../packages.html#packages.traj.Traj.construct_knotdict">[docs]</a>    <span class="k">def</span> <span class="nf">construct_knotdict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function analyzes the data and calculates the knot_dict, by performing the following operations:</span>
+<span class="sd">        function looks for a stable knot formation in the vicinity of frames from the &quot;frame_list&quot;, by checking whether</span>
+<span class="sd">        there are at least &quot;min_gap&quot; frames that are 80% unknotted before the consider frame of knotting. If this</span>
+<span class="sd">        condition is met, it checks whether there are at least &quot;scope&quot; frames that are knotted after the consider</span>
+<span class="sd">        knotting frame. If the selected frame passes this verification successfully, function considers that a stable</span>
+<span class="sd">        knot has formed in it, and packages it to the dictionary.</span>
+
+<span class="sd">        If the second condition is not met, the function starts the next iteration of checking from the next frame</span>
+<span class="sd">        after the one in which an unknot was detected. The verification process is conducted following the same rules</span>
+<span class="sd">        as before, with the exception that it no longer checks the condition for untangling before the knotting moment.</span>
+<span class="sd">        There can be maximum 10 such iterations. This limitation is introduced to prevent the function from getting</span>
+<span class="sd">        stuck in a loop.</span>
+
+<span class="sd">        If it turns out that in no frame a stable knot was formed, lasting for at least 10 frames, then function</span>
+<span class="sd">        concludes, that there is no knot in the analyzed vicinity, which was initially considered a possible knotting</span>
+<span class="sd">        location. The index of this frame is added to auxiliary_list. This list holds the indexes, of frames in which</span>
+<span class="sd">        the analyzed knot is unstable. Later, the corresponding to untie moments for those frames will be removed from</span>
+<span class="sd">        the &#39;untied_list&#39;, thus eliminating all non-stable looping moments from the analysis of knot formation.</span>
+
+<span class="sd">        The last step of this function is to check whether the frames in which the knot untied itself meet the</span>
+<span class="sd">        specified condition (whether at least 50% of the frames within &#39;CHECK_LEN&#39; (default=10) are untied after the</span>
+<span class="sd">        moment of unknotting).</span>
+
+<span class="sd">        You can change the percentage value:</span>
+<span class="sd">                PC_KNOTTING = 0.8 - The percentage of frames within &#39;min_gap&#39; that need to be untied before knot</span>
+<span class="sd">                                    formation to consider that the knot has actually formed.</span>
+<span class="sd">                PC_UNKNOTTING = 0.5 - The percentage of frames within &#39;CHECK_LEN&#39; that must be untied after the</span>
+<span class="sd">                                      analyzed untie moment, in order to actually consider it as an untie moment.</span>
+<span class="sd">                CHECK_LEN = 10 - The number of frames that will be taken into account when checking whether the knot is</span>
+<span class="sd">                                 resolved.</span>
+
+<span class="sd">        Returns: knot_dict - Dictionary of frames in which knot is knotted as keys and a topology type in a lit as</span>
+<span class="sd">        values. Later on the list will be updated with the result of further analysis.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">knot_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">auxiliary_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">PC_KNOTTING</span> <span class="o">=</span> <span class="mf">0.8</span>
+        <span class="n">PC_UNKNOTTING</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="n">CHECK_LEN</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="k">for</span> <span class="n">frame_index</span><span class="p">,</span> <span class="n">frame</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frame_list</span><span class="p">):</span>
+            <span class="n">found</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="c1"># check if there was no knot before the found frame</span>
+            <span class="k">if</span> <span class="n">check_knotting</span><span class="p">(</span><span class="n">frame</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_gap</span><span class="p">,</span> <span class="n">frame</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">PC_KNOTTING</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_gap</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">closure</span><span class="p">,</span>
+                              <span class="bp">self</span><span class="o">.</span><span class="n">max_cross</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tries</span><span class="p">):</span>
+                <span class="c1"># check if knot is tied on the correct number of frames</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">check_after_knotting</span><span class="p">(</span><span class="n">frame</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">frame</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">scope</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">closure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_cross</span><span class="p">,</span>
+                                              <span class="bp">self</span><span class="o">.</span><span class="n">tries</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">knot_dict</span><span class="p">[</span><span class="n">frame</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># knot is not tied correctly, further checks, but maximum 10 times</span>
+                    <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">while</span> <span class="n">counter</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">:</span>
+                        <span class="n">kn</span> <span class="o">=</span> <span class="n">knot_type</span><span class="p">(</span><span class="n">result</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">closure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_cross</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tries</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">kn</span> <span class="o">!=</span> <span class="s1">&#39;0_1&#39;</span><span class="p">:</span>
+                            <span class="n">check</span> <span class="o">=</span> <span class="n">check_after_knotting</span><span class="p">(</span><span class="n">result</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="n">result</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">scope</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">closure</span><span class="p">,</span>
+                                                         <span class="bp">self</span><span class="o">.</span><span class="n">max_cross</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tries</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">check</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                                <span class="c1"># knot find in this frame is correct</span>
+                                <span class="n">knot_dict</span><span class="p">[</span><span class="n">result</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                                <span class="n">found</span> <span class="o">=</span> <span class="kc">True</span>
+                                <span class="k">break</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="c1"># knot is not tied correctly, further checks,</span>
+                                <span class="n">result</span> <span class="o">=</span> <span class="n">check</span>
+                                <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="c1"># knot in the frame nr result+1 is an unknot</span>
+                            <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="n">result</span> <span class="o">+=</span> <span class="mi">2</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
+                        <span class="n">auxiliary_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frame_index</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">auxiliary_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frame_index</span><span class="p">)</span>
+
+        <span class="c1"># calculating topology type</span>
+        <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">knot_dict</span><span class="p">:</span>
+            <span class="n">kn</span> <span class="o">=</span> <span class="n">knot_type</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">closure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_cross</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tries</span><span class="p">)</span>
+            <span class="n">knot_dict</span><span class="p">[</span><span class="n">frame</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">kn</span><span class="p">]</span>
+
+        <span class="c1"># updating the untied_list</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">auxiliary_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">f</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">untied_list</span><span class="p">):</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">untied_list</span><span class="p">[</span><span class="n">f</span><span class="p">]</span>
+
+        <span class="c1"># checking and inserting to knot_dict the frame number where the knot untied</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">un_frame</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">untied_list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">un_frame</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">if</span> <span class="n">check_knotting</span><span class="p">(</span><span class="n">un_frame</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">un_frame</span> <span class="o">+</span> <span class="n">CHECK_LEN</span><span class="p">,</span> <span class="n">PC_UNKNOTTING</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span> <span class="n">CHECK_LEN</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">closure</span><span class="p">,</span>
+                              <span class="bp">self</span><span class="o">.</span><span class="n">max_cross</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tries</span><span class="p">):</span>
+                <span class="n">frame</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">knot_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">knot_dict</span><span class="p">[</span><span class="n">frame</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">un_frame</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">find</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">next_frame</span> <span class="o">=</span> <span class="n">un_frame</span> <span class="o">+</span> <span class="mi">11</span>
+                <span class="k">while</span> <span class="n">find</span> <span class="ow">and</span> <span class="n">next_frame</span> <span class="o">+</span> <span class="mi">10</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_frame</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">check_knotting</span><span class="p">(</span><span class="n">next_frame</span><span class="p">,</span> <span class="n">next_frame</span> <span class="o">+</span> <span class="n">CHECK_LEN</span><span class="p">,</span> <span class="n">PC_UNKNOTTING</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span> <span class="n">CHECK_LEN</span><span class="p">,</span>
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">closure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_cross</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tries</span><span class="p">):</span>
+                        <span class="n">frame</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">knot_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="n">i</span><span class="p">]</span>
+                        <span class="n">knot_dict</span><span class="p">[</span><span class="n">frame</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">un_frame</span><span class="p">)</span>
+                        <span class="n">find</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">next_frame</span> <span class="o">+=</span> <span class="mi">11</span>
+
+        <span class="c1"># Checking whether the last knot has a recorded untie moment or if it is tied until the end of the</span>
+        <span class="c1"># and needs this information to be added.</span>
+        <span class="n">last_frame</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">knot_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">knot_dict</span><span class="p">[</span><span class="n">last_frame</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">knot_dict</span><span class="p">[</span><span class="n">last_frame</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">knot_dict</span></div>
+
+<div class="viewcode-block" id="Traj.check_knot"><a class="viewcode-back" href="../../packages.html#packages.traj.Traj.check_knot">[docs]</a>    <span class="k">def</span> <span class="nf">check_knot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function checks if the distance between the formation of the knot and its unknotting frame meets the condition</span>
+<span class="sd">        adopted in the analysis, i.e. whether it is greater than min_knot. If not, it modifies the knot_dict.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">too_short</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="p">[</span><span class="n">frame</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">end</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">end</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_frame</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">end</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="p">[</span><span class="n">frame</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">end</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_knot</span><span class="p">:</span>
+                <span class="n">too_short</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">nr</span> <span class="ow">in</span> <span class="n">too_short</span><span class="p">:</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="p">[</span><span class="n">nr</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Traj.calculate_knotcore"><a class="viewcode-back" href="../../packages.html#packages.traj.Traj.calculate_knotcore">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_knotcore</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The function calculate the knot core range in frames, where the knot was tied and inserts the results into</span>
+<span class="sd">        the knot_dict, at the same time validating the knot core range. If it receives an incorrect value, it searches</span>
+<span class="sd">        for the correct value in the next 10 frames. Incorrect values are written to the list &#39;keys_to_modify&#39; and</span>
+<span class="sd">        corrected at the end of the function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">keys_to_modify</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="p">:</span>
+            <span class="n">er</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">knotcore</span> <span class="o">=</span> <span class="n">knotcore_len</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">closure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tries</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_cross</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">knotcore</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Knot core value can not be 0.&quot;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">knotcore</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Knot core length must be greater than 6.&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Exception occurred: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">. Analysis of frame </span><span class="si">{</span><span class="n">frame</span><span class="si">}</span><span class="s2"> is processed. Looking for the knot in &quot;</span>
+                          <span class="sa">f</span><span class="s2">&quot;successive frames.&quot;</span><span class="p">)</span>
+                <span class="n">er</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="n">er</span><span class="p">:</span>
+                <span class="c1"># Invalid knot core in frame, looking for the correct value in subsequent frames, but maximum in 10</span>
+                <span class="c1"># frames</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">frame</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">frame</span> <span class="o">+</span> <span class="mi">10</span><span class="p">):</span>
+                    <span class="n">knotcore</span> <span class="o">=</span> <span class="n">knotcore_len</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">closure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tries</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_cross</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">knotcore</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">tuple</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">knotcore</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">knotcore</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">6</span><span class="p">:</span>
+                            <span class="n">keys_to_modify</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">frame</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">knotcore</span><span class="p">))</span>
+                            <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="p">[</span><span class="n">frame</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">knotcore</span><span class="p">)</span>
+
+        <span class="c1"># Modify the dictionary</span>
+        <span class="k">for</span> <span class="n">old_frame</span><span class="p">,</span> <span class="n">new_frame</span><span class="p">,</span> <span class="n">knotcore_value</span> <span class="ow">in</span> <span class="n">keys_to_modify</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="p">[</span><span class="n">old_frame</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="p">[</span><span class="n">new_frame</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="p">[</span><span class="n">new_frame</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">knotcore_value</span><span class="p">)</span>
+            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="p">[</span><span class="n">old_frame</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="Traj.specify_knotting_style"><a class="viewcode-back" href="../../packages.html#packages.traj.Traj.specify_knotting_style">[docs]</a>    <span class="k">def</span> <span class="nf">specify_knotting_style</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The function evaluates the way of knotting, the behavior of the loop and inserts the results into the knot_dict.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            1. Way of knotting:</span>
+<span class="sd">                0, if the loop forms via slipknot.</span>
+<span class="sd">                1, if the loop forms directly.</span>
+<span class="sd">            2. Behavior of the loop:</span>
+<span class="sd">                0, if the loop tightens.</span>
+<span class="sd">                1, if the loop in place.</span>
+<span class="sd">                2, if the loop expands.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="p">:</span>
+            <span class="n">knotcore</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="p">[</span><span class="n">frame</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+
+            <span class="c1"># rating the way of looping</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nterminus</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">knotcore</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SLIPKNOT_SIZE</span><span class="p">:</span>
+                    <span class="c1"># N-terminus, slipknot</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="p">[</span><span class="n">frame</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># N-terminus, directly</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="p">[</span><span class="n">frame</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prot_len</span> <span class="o">-</span> <span class="n">knotcore</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SLIPKNOT_SIZE</span><span class="p">:</span>
+                    <span class="c1"># C-terminus, slipknot</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="p">[</span><span class="n">frame</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># C-terminus, directly</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="p">[</span><span class="n">frame</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nat_knotcore</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nterminus</span><span class="p">:</span>
+                    <span class="n">diff</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prot_len</span> <span class="o">-</span> <span class="n">knotcore</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prot_len</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">nat_knotcore</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">diff</span> <span class="o">=</span> <span class="n">knotcore</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">nat_knotcore</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+                <span class="c1"># rating the behavior of the loop</span>
+                <span class="k">if</span> <span class="n">diff</span> <span class="o">&lt;</span> <span class="mf">0.5</span><span class="p">:</span>
+                    <span class="c1"># loop is tightens</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="p">[</span><span class="n">frame</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="mf">0.5</span> <span class="o">&lt;=</span> <span class="n">diff</span> <span class="o">&lt;=</span> <span class="mf">1.5</span><span class="p">:</span>
+                    <span class="c1"># loop in place</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="p">[</span><span class="n">frame</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">diff</span> <span class="o">&gt;</span> <span class="mf">1.5</span><span class="p">:</span>
+                    <span class="c1"># loop expands</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">knot_dict</span><span class="p">[</span><span class="n">frame</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debug</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">nat_knotcore</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The knot core range of the native form of the structure was not given. Function didn&#39;t rate&quot;</span>
+                  <span class="s2">&quot; the behavior of the loop.&quot;</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Aleksandra Sekula.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
