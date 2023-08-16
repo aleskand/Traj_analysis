@@ -13,7 +13,7 @@ Rok akademicki: 2022/2023
 
 W folderze traj_analysis znajdują się wszystkie, niezbędne pliki do użycia skryptu. Dokumentacja programu: docs/html/index.html
 
-W folderze examples znajduje się przykładowy wykres, wygenerwoany za pomocą skryptu dla jednej z analizowanych trajektorii.
+W folderze examples znajduje się przykładowy wykres, wygenerwoany za pomocą skryptu dla jednej z analizowanych trajektorii oraz kilka plików z trajektoriami do testów.
 
 ENG:
 The repository contains files that are part of a bachelor's thesis conducted at the Faculty of Mathematics, Informatics, and Mechanics of the University of Warsaw, in the field of Bioinformatics and Systems Biology.
@@ -28,7 +28,7 @@ Academic year: 2022/2023
 
 In the 'traj_analysis' folder, you will find all the necessary files to use the script. Program documentation: docs/html/index.html
 
-The 'examples' folder contains a sample plot generated using the script for one of the analyzed trajectories.
+The 'examples' folder contains a sample plot generated using the script for one of the analyzed trajectories and several files with trajectories for testing.
 
 # Traj_analysis
 Script analyzes the trajectory of the (bio)polymers. It finds frames of the trajectory in which knot forms based on the given conditions, analyzes the process of knot formation and plots the range chart of the knot core throughout the entire trajectory of the analyzed structure.
