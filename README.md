@@ -39,11 +39,11 @@ Currently, usage is only possible after downloading the 'traj_analysis' folder a
 import traj_analysis
 import calculate_knotcore
 
-# returns dictionary withe the results of the analysis:  {402: ['3_1', None, (10, 80), 0, 1]}
-analyze_trajectory("files/traj.pdb", nterminus=True, nat_knotcore=(13, 80))
+# returns dictionary with the results of the analysis:  {402: ['3_1', None, (10, 80), 0, 1]}
+analyze_trajectory("examples/traj.pdb", nterminus=True, nat_knotcore=(13, 80))
 
 # calculate knot core value for the given structure: (13,80)
-calculate_pdb_knotcore("files/2efv.pdb")
+calculate_pdb_knotcore("examples/2efv.pdb")
 ```
 or use from the command line:
 ```python
